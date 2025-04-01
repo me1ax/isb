@@ -1,0 +1,6 @@
+{
+    "input_file": "text.txt",
+    "encrypted_output_file": "encrypted_text.txt",
+    "key_file": "key.json",
+    "min_text_length": 500
+}
