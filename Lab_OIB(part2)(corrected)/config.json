@@ -1,6 +1,0 @@
-{
-    "input_file": "data_text.txt",
-    "output_frequencies_file": "probability2.json",
-    "alphabet_frequencies_file": "alphabet2.json",
-    "output_decrypted_file": "cod24.txt"
-}
