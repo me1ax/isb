@@ -1,20 +1,27 @@
-"""
-Основная точка входа для гибридной криптосистемы.
-"""
-
 import argparse
+from enum import Enum, auto
 
-from hybrid_system import decrypt_data
-from hybrid_system import encrypt_data
-from hybrid_system import generate_keys
+from hybrid_system import decrypt_data, encrypt_data, generate_keys
 from utils import load_settings
 
+# Определение Enum для режимов работы
+class Mode(Enum):
+    GENERATION = auto()
+    ENCRYPTION = auto()
+    DECRYPTION = auto()
 
 def main():
     """
-    Обрабатывает аргументы командной строки.
+    Обрабатывает аргументы командной строки и выполняет выбранную операцию.
     """
     parser = argparse.ArgumentParser(description='Гибридная криптосистема')
+    parser.add_argument(
+        '-c',
+        '--config',
+        type=str,
+        default='settings.json',
+        help='Путь к файлу настроек JSON (по умолчанию: settings.json)'
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         '-gen',
@@ -38,22 +45,41 @@ def main():
     args = parser.parse_args()
 
     try:
-        settings = load_settings()
-        mode = 'generation' if args.generation else 'encryption' if args.encryption else 'decryption'
+        # Загрузка настроек из файла
+        settings = load_settings(args.config)
+
+        # Определение режима с помощью Enum
+        if args.generation:
+            mode = Mode.GENERATION
+        elif args.encryption:
+            mode = Mode.ENCRYPTION
+        elif args.decryption:
+            mode = Mode.DECRYPTION
+        else:
+            # На случай, если что-то пошло не так
+            raise ValueError("Не выбран режим работы.")
+
+        # Использование match/case для выбора действия
         match mode:
-            case 'generation':
+            case Mode.GENERATION:
                 generate_keys(settings)
-            case 'encryption':
+            case Mode.ENCRYPTION:
                 encrypt_data(settings)
-            case 'decryption':
+            case Mode.DECRYPTION:
                 decrypt_data(settings)
+
     except FileNotFoundError as e:
+        print(f'Ошибка: {e}')
+        exit(1)
+    except ValueError as e:
+        print(f'Ошибка: {e}')
+        exit(1)
+    except KeyError as e:
         print(f'Ошибка: {e}')
         exit(1)
     except Exception as e:
         print(f'Произошла ошибка: {e}')
         exit(1)
-
 
 if __name__ == '__main__':
     main()
