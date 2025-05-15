@@ -1,13 +1,41 @@
-"""
-Модуль асимметричного шифрования с использованием RSA и OAEP.
-"""
-
 import os
-
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding as asym_padding
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+
+def read_file(file_path):
+    """
+    Читает содержимое файла в бинарном режиме с обработкой ошибок.
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Файл {file_path} не найден")
+    try:
+        with open(file_path, 'rb') as f:
+            return f.read()
+    except IOError as e:
+        print(f"Ошибка при чтении файла {file_path}: {str(e)}")
+        raise
+
+
+def write_file(file_path, data):
+    """
+    Записывает данные в файл в бинарном режиме с обработкой ошибок.
+    """
+    output_dir = os.path.dirname(file_path)
+    if output_dir and not os.path.exists(output_dir):
+        try:
+            os.makedirs(output_dir)
+        except OSError as e:
+            print(f"Ошибка при создании директории {output_dir}: {str(e)}")
+            raise
+    try:
+        with open(file_path, 'wb') as f:
+            f.write(data)
+    except IOError as e:
+        print(f"Ошибка при записи файла {file_path}: {str(e)}")
+        raise
 
 
 def generate_asymmetric_keys():
@@ -25,10 +53,6 @@ def encrypt_symmetric_key(sym_key, public_key, path):
     Шифрует симметричный ключ с помощью RSA-OAEP.
     """
     print("Шифрование симметричного ключа...")
-    output_dir = os.path.dirname(path)
-    if output_dir and not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
     encrypted_key = public_key.encrypt(
         sym_key,
         asym_padding.OAEP(
@@ -37,8 +61,7 @@ def encrypt_symmetric_key(sym_key, public_key, path):
             label=None
         )
     )
-    with open(path, 'wb') as f:
-        f.write(encrypted_key)
+    write_file(path, encrypted_key)
     print(f"Зашифрованный симметричный ключ сохранен в {path}")
 
 
@@ -47,17 +70,9 @@ def decrypt_symmetric_key(encrypted_key_path, private_key_path):
     Расшифровывает симметричный ключ.
     """
     print("Расшифровка симметричного ключа...")
-    if not os.path.exists(encrypted_key_path):
-        raise FileNotFoundError(
-            f"Файл зашифрованного ключа {encrypted_key_path} не найден")
-    if not os.path.exists(private_key_path):
-        raise FileNotFoundError(
-            f"Файл закрытого ключа {private_key_path} не найден")
-
-    with open(encrypted_key_path, 'rb') as f:
-        encrypted_key = f.read()
-    with open(private_key_path, 'rb') as f:
-        private_key = load_pem_private_key(f.read(), password=None)
+    encrypted_key = read_file(encrypted_key_path)
+    private_key_data = read_file(private_key_path)
+    private_key = load_pem_private_key(private_key_data, password=None)
 
     sym_key = private_key.decrypt(
         encrypted_key,
@@ -68,3 +83,4 @@ def decrypt_symmetric_key(encrypted_key_path, private_key_path):
         )
     )
     return sym_key
+
