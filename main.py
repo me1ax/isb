@@ -48,25 +48,16 @@ def main():
         # Загрузка настроек из файла
         settings = load_settings(args.config)
 
-        # Определение режима с помощью Enum
-        if args.generation:
-            mode = Mode.GENERATION
-        elif args.encryption:
-            mode = Mode.ENCRYPTION
-        elif args.decryption:
-            mode = Mode.DECRYPTION
-        else:
-            # На случай, если что-то пошло не так
-            raise ValueError("Не выбран режим работы.")
-
-        # Использование match/case для выбора действия
-        match mode:
-            case Mode.GENERATION:
+        # Выбор действия с помощью match/case на основе аргументов
+        match True:
+            case args.generation:
                 generate_keys(settings)
-            case Mode.ENCRYPTION:
+            case args.encryption:
                 encrypt_data(settings)
-            case Mode.DECRYPTION:
+            case args.decryption:
                 decrypt_data(settings)
+            case _:
+                raise ValueError("Не выбран режим работы.")
 
     except FileNotFoundError as e:
         print(f'Ошибка: {e}')
