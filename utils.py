@@ -1,5 +1,3 @@
-""" Вспомогательные функции для загрузки конфигурации и сериализации ключей. """
-
 import json
 import os
 
@@ -25,7 +23,6 @@ def load_settings(settings_path='settings.json'):
         print(f"Неожиданная ошибка при загрузке настроек: {e}")
         raise
 
-
 def save_public_key(key, path):
     """Записывает публичный ключ в файл."""
     try:
@@ -38,6 +35,21 @@ def save_public_key(key, path):
             )
     except Exception as e:
         print(f"Ошибка при сохранении публичного ключа: {e}")
+        raise
+
+def save_private_key(key, path):
+    """Записывает приватный ключ в файл."""
+    try:
+        with open(path, 'wb') as f:
+            f.write(
+                key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.TraditionalOpenSSL,
+                    encryption_algorithm=serialization.NoEncryption()
+                )
+            )
+    except Exception as e:
+        print(f"Ошибка при сохранении приватного ключа: {e}")
         raise
 
 def serialize_key(key, path, key_type):
@@ -58,14 +70,6 @@ def serialize_key(key, path, key_type):
         case 'public':
             save_public_key(key, path)
         case 'private':
-            with open(path, 'wb') as f:
-                f.write(
-                    key.private_bytes(
-                        encoding=serialization.Encoding.PEM,
-                        format=serialization.PrivateFormat.TraditionalOpenSSL,
-                        encryption_algorithm=serialization.NoEncryption()
-                    )
-                )
+            save_private_key(key, path)
         case _:
             raise ValueError(f"Неверный тип ключа: {key_type}")
-
