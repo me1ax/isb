@@ -21,22 +21,27 @@ def read_file(file_path):
 
 def write_file(file_path, data):
     """
-    Записывает данные в файл в бинарном режиме с обработкой ошибок.
+    Записывает данные в файл в бинарном режиме с обработкой ошибок, используя match/case.
     """
     output_dir = os.path.dirname(file_path)
-    if output_dir and not os.path.exists(output_dir):
-        try:
-            os.makedirs(output_dir)
-        except OSError as e:
-            print(f"Ошибка при создании директории {output_dir}: {str(e)}")
-            raise
     try:
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir)
         with open(file_path, 'wb') as f:
             f.write(data)
+    except OSError as e:
+        match str(e).lower().find("mkdir") >= 0:
+            case True:
+                print(f"Ошибка при создании директории {output_dir}: {str(e)}")
+            case False:
+                print(f"Ошибка при записи файла {file_path}: {str(e)}")
+        raise
     except IOError as e:
         print(f"Ошибка при записи файла {file_path}: {str(e)}")
         raise
-
+    except Exception as e:
+        print(f"Неизвестная ошибка при записи файла {file_path}: {str(e)}")
+        raise
 
 def generate_asymmetric_keys():
     """
@@ -83,4 +88,3 @@ def decrypt_symmetric_key(encrypted_key_path, private_key_path):
         )
     )
     return sym_key
-
